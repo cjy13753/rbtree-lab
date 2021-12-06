@@ -41,13 +41,23 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
 }
 
 node_t *rbtree_min(const rbtree *t) {
-  // TODO: implement find
-  return t->root;
+  node_t *cur_node = t->root;
+  node_t *next_left = cur_node->left;
+  while (next_left != NULL) {
+    cur_node = next_left;
+    next_left = cur_node->left;
+  }
+  return cur_node;
 }
 
 node_t *rbtree_max(const rbtree *t) {
-  // TODO: implement find
-  return t->root;
+  node_t *cur_node = t->root;
+  node_t *next_right = cur_node->right;
+  while (next_right != NULL) {
+    cur_node = next_right;
+    next_right = cur_node->right;
+  }
+  return cur_node;
 }
 
 int rbtree_erase(rbtree *t, node_t *p) {
