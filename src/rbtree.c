@@ -175,7 +175,7 @@ void fixup(rbtree *t, node_t *node_to_insert) {
   node_t *pt = node_to_insert;
   
   while (pt != t->root && pt->color == RBTREE_RED && pt->parent->color == RBTREE_RED) {
-    node_t *pt_parent = node_to_insert->parent;
+    node_t *pt_parent = pt->parent;
     node_t *pt_grandparent = pt->parent->parent;
 
     // case A: when pt_parent is left child of pt_grandparent
@@ -189,14 +189,14 @@ void fixup(rbtree *t, node_t *node_to_insert) {
         pt = pt_grandparent;
       }
 
-      // case 2: pt_uncle is black and pt is right child of pt_parent(triangle)
-      else if (pt == pt_parent->right) {
-        left_rotate(t, pt_parent);
-        pt = pt_parent;
-        pt_parent = pt->parent;
-      }
-      // case 3: pt_uncle is black is left child of pt_parent(line)
       else {
+        // case 2: pt_uncle is black and pt is right child of pt_parent(triangle)
+        if (pt == pt_parent->right) {
+          left_rotate(t, pt_parent);
+          pt = pt_parent;
+          pt_parent = pt->parent;
+        }
+        // case 3: pt_uncle is black is left child of pt_parent(line)
         right_rotate(t, pt_grandparent);
         pt_parent->color = RBTREE_BLACK;
         pt_grandparent->color = RBTREE_RED;
@@ -215,14 +215,14 @@ void fixup(rbtree *t, node_t *node_to_insert) {
         pt = pt_grandparent;
       }
 
-      // case 2: pt_uncle is black and pt is left child of pt_parent(triangle)
-      else if (pt == pt_parent->left) {
-        right_rotate(t, pt_parent);
-        pt = pt_parent;
-        pt_parent = pt->parent;
-      }
-      // case 3: pt_uncle is black is right child of pt_parent(line)
       else {
+        // case 2: pt_uncle is black and pt is left child of pt_parent(triangle)
+        if (pt == pt_parent->left) {
+          right_rotate(t, pt_parent);
+          pt = pt_parent;
+          pt_parent = pt->parent;
+        }
+        // case 3: pt_uncle is black is right child of pt_parent(line)
         left_rotate(t, pt_grandparent);
         pt_parent->color = RBTREE_BLACK;
         pt_grandparent->color = RBTREE_RED;
