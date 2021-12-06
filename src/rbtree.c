@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+node_t *binary_search(node_t *node, key_t key);
 node_t *new_node(key_t data);
 node_t *bst_insert(node_t *root, node_t *node_to_insert);
 void left_rotate(rbtree *t, node_t *pivot);
@@ -35,8 +36,7 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
-  // TODO: implement find
-  return t->root;
+  return binary_search(t->root, key);
 }
 
 node_t *rbtree_min(const rbtree *t) {
@@ -60,9 +60,25 @@ int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
 }
 
 // helper functions below
-node_t *new_node(key_t data) {
+node_t *binary_search(node_t *node, key_t key) {
+  if (node == NULL) {
+    return NULL;
+  }
+  
+  if (key < node->key) {
+    return binary_search(node->left, key);
+  }
+  else if (key == node->key) {
+    return node;
+  }
+  else {
+    return binary_search(node->right, key);
+  }
+}
+
+node_t *new_node(key_t key) {
   node_t *node_to_insert = (node_t *)calloc(1, sizeof(node_t));
-  node_to_insert->key = data;
+  node_to_insert->key = key;
   node_to_insert->parent = NULL;
   node_to_insert->left = NULL;
   node_to_insert->right = NULL;
