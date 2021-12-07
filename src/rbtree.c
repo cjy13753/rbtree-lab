@@ -2,33 +2,41 @@
 
 #include <stdlib.h>
 
-void free_nodes_in_postorder(node_t *root);
-node_t *binary_search(node_t *node, key_t key);
-node_t *new_node(key_t data);
-node_t *bst_insert(node_t *root, node_t *node_to_insert);
+void free_nodes_in_postorder(rbtree *t, node_t *root);
+node_t *binary_search(const rbtree *t, node_t *node, key_t key);
+node_t *new_node(rbtree *t, key_t key, color_t color);
+node_t *bst_insert(rbtree *t, node_t *root, node_t *node_to_insert);
 void left_rotate(rbtree *t, node_t *pivot);
 void right_rotate(rbtree *t, node_t *pivot);
 void fixup(rbtree *t, node_t *node_to_insert);
 
 rbtree *new_rbtree(void) {
+  node_t *NIL = (node_t *)calloc(1, sizeof(node_t));
+  NIL->key = 0;
+  NIL->color = RBTREE_BLACK;
+  NIL->parent = NULL;
+  NIL->left = NULL;
+  NIL->right = NULL;
+  
   rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
-  p->root = NULL;
-  p->nil = NULL;
+  p->root = NIL;
+  p->nil = NIL;
   
   return p;
 }
 
 void delete_rbtree(rbtree *t) {
-  free_nodes_in_postorder(t->root);
+  free_nodes_in_postorder(t, t->root);
+  free(t->nil);
   free(t);
 }
 
 node_t *rbtree_insert(rbtree *t, const key_t key) {
   // Initiallize node with the given key and color it red
-  node_t *node_to_insert = new_node(key);
+  node_t *node_to_insert = new_node(t, key, RBTREE_RED);
 
   // bst insert the new node into t
-  t->root = bst_insert(t->root, node_to_insert);
+  t->root = bst_insert(t, t->root, node_to_insert);
 
   // fixup to maintain the properties of rb tree
   fixup(t, node_to_insert);
@@ -37,13 +45,13 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
-  return binary_search(t->root, key);
+  return binary_search(t, t->root, key);
 }
 
 node_t *rbtree_min(const rbtree *t) {
   node_t *cur_node = t->root;
   node_t *next_left = cur_node->left;
-  while (next_left != NULL) {
+  while (next_left != t->nil) {
     cur_node = next_left;
     next_left = cur_node->left;
   }
@@ -53,7 +61,7 @@ node_t *rbtree_min(const rbtree *t) {
 node_t *rbtree_max(const rbtree *t) {
   node_t *cur_node = t->root;
   node_t *next_right = cur_node->right;
-  while (next_right != NULL) {
+  while (next_right != t->nil) {
     cur_node = next_right;
     next_right = cur_node->right;
   }
@@ -63,7 +71,7 @@ node_t *rbtree_max(const rbtree *t) {
 int rbtree_erase(rbtree *t, node_t *p) {
   // Minimum implementation just to pass 'test_erase_root'
   free(p);
-  t->root = NULL;
+  t->root = t->nil;
   return 0;
 }
 
@@ -73,58 +81,58 @@ int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
 }
 
 // helper functions below
-void free_nodes_in_postorder(node_t *root) {
-  if (root == NULL) {
+void free_nodes_in_postorder(rbtree *t, node_t *root) {
+  if (root == t->nil) {
     return;
   }
 
-  if (root->left == NULL && root->right == NULL) {
+  if (root->left == t->nil && root->right == t->nil) {
     free(root);
   }
   else {
-    free_nodes_in_postorder(root->left);
-    free_nodes_in_postorder(root->right);
-    free_nodes_in_postorder(root);
+    free_nodes_in_postorder(t, root->left);
+    free_nodes_in_postorder(t, root->right);
+    free_nodes_in_postorder(t, root);
   }
 }
 
-node_t *binary_search(node_t *node, key_t key) {
-  if (node == NULL) {
+node_t *binary_search(const rbtree *t, node_t *node, key_t key) {
+  if (node == t->nil) {
     return NULL;
   }
   
   if (key < node->key) {
-    return binary_search(node->left, key);
+    return binary_search(t, node->left, key);
   }
   else if (key == node->key) {
     return node;
   }
   else {
-    return binary_search(node->right, key);
+    return binary_search(t, node->right, key);
   }
 }
 
-node_t *new_node(key_t key) {
+node_t *new_node(rbtree *t, key_t key, color_t color) {
   node_t *node_to_insert = (node_t *)calloc(1, sizeof(node_t));
   node_to_insert->key = key;
-  node_to_insert->parent = NULL;
-  node_to_insert->left = NULL;
-  node_to_insert->right = NULL;
-  node_to_insert->color = RBTREE_RED;
+  node_to_insert->parent = t->nil;
+  node_to_insert->left = t->nil;
+  node_to_insert->right = t->nil;
+  node_to_insert->color = color;
 
   return node_to_insert;
 }
 
-node_t *bst_insert(node_t *root, node_t *node_to_insert) {
-  if (root == NULL)
+node_t *bst_insert(rbtree *t, node_t *root, node_t *node_to_insert) {
+  if (root == t->nil)
     return node_to_insert;
 
   if (node_to_insert->key < root->key) {
-    root->left = bst_insert(root->left, node_to_insert);
+    root->left = bst_insert(t, root->left, node_to_insert);
     root->left->parent = root;
   }
   else {
-    root->right = bst_insert(root->right, node_to_insert);
+    root->right = bst_insert(t, root->right, node_to_insert);
     root->right->parent = root;
   }
   
@@ -136,13 +144,13 @@ void left_rotate(rbtree *t, node_t *pivot) {
   
   // pivot의 right child가 가지고 있던 left child를 pivot의 right child로 갱신
   pivot->right = right->left;
-  if (pivot->right != NULL) {
+  if (pivot->right != t->nil) {
     pivot->right->parent = pivot;
   }
   
   // pivot의 right child가 기존 pivot의 부모와 연결관계 형성
   right->parent = pivot->parent;
-  if (pivot->parent == NULL) {
+  if (pivot->parent == t->nil) {
     t->root = right;
   } else if (pivot == pivot->parent->left) {
     pivot->parent->left = right;
@@ -161,13 +169,13 @@ void right_rotate(rbtree *t, node_t *pivot) {
   
   // pivot의 left child가 가지고 있던 right child를 pivot의 left child로 갱신
   pivot->left = left->right;
-  if (pivot->left != NULL) {
+  if (pivot->left != t->nil) {
     pivot->left->parent = pivot;
   }
   
   // pivot의 left child가 기존 pivot의 부모와 연결관계 형성
   left->parent = pivot->parent;
-  if (pivot->parent == NULL) {
+  if (pivot->parent == t->nil) {
     t->root = left;
   } else if (pivot == pivot->parent->left) {
     pivot->parent->left = left;
@@ -192,7 +200,7 @@ void fixup(rbtree *t, node_t *node_to_insert) {
     if (pt_parent == pt_grandparent->left) {
       node_t *pt_uncle = pt_grandparent->right;
       // case 1: pt_uncle is red
-      if (pt_uncle != NULL && pt_uncle->color == RBTREE_RED) {
+      if (pt_uncle != t->nil && pt_uncle->color == RBTREE_RED) {
         pt_grandparent->color = RBTREE_RED;
         pt_parent->color = RBTREE_BLACK;
         pt_uncle->color = RBTREE_BLACK;
@@ -218,7 +226,7 @@ void fixup(rbtree *t, node_t *node_to_insert) {
     else if (pt_parent == pt_grandparent->right) {
       node_t *pt_uncle = pt_grandparent->left;
       // case 1: pt_uncle is red
-      if (pt_uncle != NULL && pt_uncle->color == RBTREE_RED) {
+      if (pt_uncle != t->nil && pt_uncle->color == RBTREE_RED) {
         pt_grandparent->color = RBTREE_RED;
         pt_parent->color = RBTREE_BLACK;
         pt_uncle->color = RBTREE_BLACK;
