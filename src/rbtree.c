@@ -86,14 +86,9 @@ void free_nodes_in_postorder(rbtree *t, node_t *root) {
     return;
   }
 
-  if (root->left == t->nil && root->right == t->nil) {
-    free(root);
-  }
-  else {
-    free_nodes_in_postorder(t, root->left);
-    free_nodes_in_postorder(t, root->right);
-    free_nodes_in_postorder(t, root);
-  }
+  free_nodes_in_postorder(t, root->left);
+  free_nodes_in_postorder(t, root->right);
+  free(root);
 }
 
 node_t *binary_search(const rbtree *t, node_t *node, key_t key) {
